@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { prisma } from "../../lib/db";
 import { z } from "zod";
+import { adminAuthMiddleware } from "../middleware/auth";
 
 const orders = new Hono();
 
@@ -26,33 +27,16 @@ const createOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1, "At least one item is required in order"),
 });
 
-// POST /api/orders (Guest COD Checkout)
+// POST /api/orders (Guest COD Checkout - Public)
 orders.post("/", async (c) => {
   try {
     const body = await c.req.json();
     const validated = createOrderSchema.parse(body);
 
-    // Calculate total amount & verify stock
+    // Calculate subtotal
     let subtotal = 0;
     for (const item of validated.items) {
       subtotal += item.price * item.quantity;
-
-      if (item.variantId) {
-        const variant = await prisma.productVariant.findUnique({
-          where: { id: item.variantId },
-        });
-        if (!variant) {
-          return c.json({ error: `Variant for item "${item.title}" not found.` }, 400);
-        }
-        if (variant.stock < item.quantity) {
-          return c.json(
-            {
-              error: `Insufficient stock for ${item.title} (${item.size} / ${item.color}). Only ${variant.stock} available.`,
-            },
-            400
-          );
-        }
-      }
     }
 
     // Apply coupon if provided
@@ -77,8 +61,40 @@ orders.post("/", async (c) => {
     const randomSuffix = Math.floor(1000 + Math.random() * 9000);
     const orderNumber = `CWB-${currentYear}-${randomSuffix}`;
 
-    // Execute in transaction: Create Order + OrderItems, Decrement Variant Stocks
+    // Execute in transaction: Verify stock, Decrement Variant Stocks, Create Order
     const createdOrder = await prisma.$transaction(async (tx) => {
+      // 1. Verify stock for each variant INSIDE transaction to prevent race conditions
+      for (const item of validated.items) {
+        if (item.variantId) {
+          const variant = await tx.productVariant.findUnique({
+            where: { id: item.variantId },
+          });
+          if (!variant) {
+            throw new Error(`Variant for item "${item.title}" not found.`);
+          }
+          if (variant.stock < item.quantity) {
+            throw new Error(
+              `Insufficient stock for ${item.title} (${item.size} / ${item.color}). Only ${variant.stock} available.`
+            );
+          }
+        }
+      }
+
+      // 2. Decrement stock for each variant
+      for (const item of validated.items) {
+        if (item.variantId) {
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: {
+              stock: {
+                decrement: item.quantity,
+              },
+            },
+          });
+        }
+      }
+
+      // 3. Create Order + OrderItems
       const newOrder = await tx.order.create({
         data: {
           orderNumber,
@@ -108,20 +124,6 @@ orders.post("/", async (c) => {
         },
       });
 
-      // Decrement stock for each variant
-      for (const item of validated.items) {
-        if (item.variantId) {
-          await tx.productVariant.update({
-            where: { id: item.variantId },
-            data: {
-              stock: {
-                decrement: item.quantity,
-              },
-            },
-          });
-        }
-      }
-
       return newOrder;
     });
 
@@ -130,6 +132,33 @@ orders.post("/", async (c) => {
     return c.json({ error: err.message || "Order placement failed." }, 400);
   }
 });
+
+// GET /api/orders/:idOrNumber (Public tracking for order confirmation)
+orders.get("/:idOrNumber", async (c) => {
+  try {
+    const param = c.req.param("idOrNumber");
+    const order = await prisma.order.findFirst({
+      where: {
+        OR: [{ id: param }, { orderNumber: param }],
+      },
+      include: {
+        items: true,
+      },
+    });
+
+    if (!order) {
+      return c.json({ error: "Order not found" }, 404);
+    }
+
+    return c.json(order);
+  } catch (err: any) {
+    return c.json({ error: err.message }, 500);
+  }
+});
+
+// PROTECTED ROUTES BELOW (Requires Admin Authentication)
+orders.use("/", adminAuthMiddleware);
+orders.use("/:id/status", adminAuthMiddleware);
 
 // GET /api/orders (Admin Orders List)
 orders.get("/", async (c) => {
@@ -154,30 +183,7 @@ orders.get("/", async (c) => {
   }
 });
 
-// GET /api/orders/:idOrNumber
-orders.get("/:idOrNumber", async (c) => {
-  try {
-    const param = c.req.param("idOrNumber");
-    const order = await prisma.order.findFirst({
-      where: {
-        OR: [{ id: param }, { orderNumber: param }],
-      },
-      include: {
-        items: true,
-      },
-    });
-
-    if (!order) {
-      return c.json({ error: "Order not found" }, 404);
-    }
-
-    return c.json(order);
-  } catch (err: any) {
-    return c.json({ error: err.message }, 500);
-  }
-});
-
-// PATCH /api/orders/:id/status (Admin)
+// PATCH /api/orders/:id/status (Admin Status Updater)
 orders.patch("/:id/status", async (c) => {
   try {
     const id = c.req.param("id");

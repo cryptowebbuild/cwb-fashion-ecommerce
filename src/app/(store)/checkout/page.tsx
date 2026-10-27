@@ -167,14 +167,20 @@ export default function CheckoutPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Full Name */}
               <div>
-                <label className="block text-xs font-semibold text-white/80 uppercase tracking-wider mb-1.5">
+                <label
+                  htmlFor="customerName"
+                  className="block text-xs font-semibold text-white/80 uppercase tracking-wider mb-1.5"
+                >
                   Full Name *
                 </label>
                 <input
+                  id="customerName"
                   type="text"
                   name="customerName"
                   value={formData.customerName}
                   onChange={handleChange}
+                  aria-invalid={Boolean(errors.customerName)}
+                  aria-describedby={errors.customerName ? "customerName-error" : undefined}
                   placeholder="e.g. Asif Mahmud"
                   className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none transition-colors ${
                     errors.customerName
@@ -183,21 +189,29 @@ export default function CheckoutPage() {
                   }`}
                 />
                 {errors.customerName && (
-                  <p className="text-[11px] text-rose-400 mt-1">{errors.customerName}</p>
+                  <p id="customerName-error" className="text-[11px] text-rose-400 mt-1">
+                    {errors.customerName}
+                  </p>
                 )}
               </div>
 
               {/* Phone & Email */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-white/80 uppercase tracking-wider mb-1.5">
+                  <label
+                    htmlFor="customerPhone"
+                    className="block text-xs font-semibold text-white/80 uppercase tracking-wider mb-1.5"
+                  >
                     Phone Number (for Courier Call) *
                   </label>
                   <input
+                    id="customerPhone"
                     type="tel"
                     name="customerPhone"
                     value={formData.customerPhone}
                     onChange={handleChange}
+                    aria-invalid={Boolean(errors.customerPhone)}
+                    aria-describedby={errors.customerPhone ? "customerPhone-error" : undefined}
                     placeholder="e.g. +8801712345678"
                     className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none transition-colors ${
                       errors.customerPhone
@@ -206,17 +220,21 @@ export default function CheckoutPage() {
                     }`}
                   />
                   {errors.customerPhone && (
-                    <p className="text-[11px] text-rose-400 mt-1">
+                    <p id="customerPhone-error" className="text-[11px] text-rose-400 mt-1">
                       {errors.customerPhone}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-white/80 uppercase tracking-wider mb-1.5">
+                  <label
+                    htmlFor="customerEmail"
+                    className="block text-xs font-semibold text-white/80 uppercase tracking-wider mb-1.5"
+                  >
                     Email Address (Optional)
                   </label>
                   <input
+                    id="customerEmail"
                     type="email"
                     name="customerEmail"
                     value={formData.customerEmail || ""}
@@ -229,14 +247,20 @@ export default function CheckoutPage() {
 
               {/* Delivery Address */}
               <div>
-                <label className="block text-xs font-semibold text-white/80 uppercase tracking-wider mb-1.5">
+                <label
+                  htmlFor="shippingAddress"
+                  className="block text-xs font-semibold text-white/80 uppercase tracking-wider mb-1.5"
+                >
                   Detailed Delivery Address *
                 </label>
                 <textarea
+                  id="shippingAddress"
                   name="shippingAddress"
                   rows={2}
                   value={formData.shippingAddress}
                   onChange={handleChange}
+                  aria-invalid={Boolean(errors.shippingAddress)}
+                  aria-describedby={errors.shippingAddress ? "shippingAddress-error" : undefined}
                   placeholder="Apartment/Flat, House No, Road No, Area"
                   className={`w-full bg-white/5 border rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none transition-colors ${
                     errors.shippingAddress
@@ -245,7 +269,7 @@ export default function CheckoutPage() {
                   }`}
                 />
                 {errors.shippingAddress && (
-                  <p className="text-[11px] text-rose-400 mt-1">
+                  <p id="shippingAddress-error" className="text-[11px] text-rose-400 mt-1">
                     {errors.shippingAddress}
                   </p>
                 )}
@@ -254,10 +278,14 @@ export default function CheckoutPage() {
               {/* City Selection */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-white/80 uppercase tracking-wider mb-1.5">
+                  <label
+                    htmlFor="city"
+                    className="block text-xs font-semibold text-white/80 uppercase tracking-wider mb-1.5"
+                  >
                     City / Division *
                   </label>
                   <select
+                    id="city"
                     name="city"
                     value={formData.city}
                     onChange={handleChange}
@@ -275,10 +303,14 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-white/80 uppercase tracking-wider mb-1.5">
+                  <label
+                    htmlFor="notes"
+                    className="block text-xs font-semibold text-white/80 uppercase tracking-wider mb-1.5"
+                  >
                     Delivery Notes (Optional)
                   </label>
                   <input
+                    id="notes"
                     type="text"
                     name="notes"
                     value={formData.notes || ""}

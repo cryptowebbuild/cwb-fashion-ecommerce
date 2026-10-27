@@ -1,10 +1,11 @@
 import { Hono } from "hono";
 import { prisma } from "../../lib/db";
 import { z } from "zod";
+import { adminAuthMiddleware } from "../middleware/auth";
 
 const products = new Hono();
 
-// GET /api/products
+// GET /api/products (Public)
 products.get("/", async (c) => {
   try {
     const categorySlug = c.req.query("category");
@@ -55,7 +56,7 @@ products.get("/", async (c) => {
   }
 });
 
-// GET /api/products/:slug
+// GET /api/products/:slug (Public)
 products.get("/:slug", async (c) => {
   try {
     const slug = c.req.param("slug");
@@ -82,7 +83,7 @@ products.get("/:slug", async (c) => {
   }
 });
 
-// POST /api/products (Admin)
+// PROTECTED ROUTES (Admin Only)
 const productSchema = z.object({
   title: z.string().min(2),
   slug: z.string().min(2),
@@ -105,7 +106,8 @@ const productSchema = z.object({
     .min(1),
 });
 
-products.post("/", async (c) => {
+// POST /api/products (Admin)
+products.post("/", adminAuthMiddleware, async (c) => {
   try {
     const body = await c.req.json();
     const validated = productSchema.parse(body);
@@ -138,7 +140,7 @@ products.post("/", async (c) => {
 });
 
 // PUT /api/products/:id (Admin)
-products.put("/:id", async (c) => {
+products.put("/:id", adminAuthMiddleware, async (c) => {
   try {
     const id = c.req.param("id");
     const body = await c.req.json();
@@ -170,7 +172,7 @@ products.put("/:id", async (c) => {
 });
 
 // DELETE /api/products/:id (Admin)
-products.delete("/:id", async (c) => {
+products.delete("/:id", adminAuthMiddleware, async (c) => {
   try {
     const id = c.req.param("id");
     await prisma.product.delete({ where: { id } });

@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { setCookie, deleteCookie } from "hono/cookie";
 import { prisma } from "../../lib/db";
 import { comparePassword, signAdminToken, verifyAdminToken } from "../../lib/auth";
 import { z } from "zod";
@@ -37,6 +38,15 @@ auth.post("/login", async (c) => {
     };
 
     const token = await signAdminToken(payload);
+
+    // Set secure HttpOnly session cookie
+    setCookie(c, "cwb_admin_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
+      maxAge: 604800, // 7 days
+      path: "/",
+    });
 
     return c.json({
       success: true,
@@ -79,6 +89,7 @@ auth.get("/me", async (c) => {
 
 // POST /api/auth/logout
 auth.post("/logout", async (c) => {
+  deleteCookie(c, "cwb_admin_token", { path: "/" });
   return c.json({ success: true, message: "Logged out successfully" });
 });
 

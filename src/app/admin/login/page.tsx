@@ -7,7 +7,13 @@ import { Lock, Mail, ArrowRight, AlertCircle, Sparkles } from "lucide-react";
 function AdminLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnUrl = searchParams.get("returnUrl") || "/admin";
+
+  // Validate returnUrl to strictly prevent open redirects
+  const rawReturnUrl = searchParams.get("returnUrl") || "/admin";
+  const returnUrl =
+    rawReturnUrl.startsWith("/") && !rawReturnUrl.startsWith("//")
+      ? rawReturnUrl
+      : "/admin";
 
   const [email, setEmail] = useState("admin@cwbfashion.com");
   const [password, setPassword] = useState("admin123");
@@ -32,9 +38,7 @@ function AdminLoginForm() {
         throw new Error(data.error || "Login failed");
       }
 
-      // Set cookie for middleware access (7 days expiration)
-      document.cookie = `cwb_admin_token=${data.token}; path=/; max-age=604800; SameSite=Lax`;
-
+      // The server sets the secure HttpOnly cookie in the Set-Cookie header automatically!
       router.push(returnUrl);
     } catch (err: any) {
       setError(err.message || "Invalid credentials. Please try again.");
@@ -99,7 +103,7 @@ function AdminLoginForm() {
           </div>
         </div>
 
-        {/* Quick Demo Credentials Pill */}
+        {/* Demo Credentials Pill */}
         <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-[11px] text-white/50 flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-cwb-accent" />

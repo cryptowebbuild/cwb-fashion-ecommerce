@@ -1,10 +1,34 @@
 import { Hono } from "hono";
 import { prisma } from "../../lib/db";
+import { adminAuthMiddleware } from "../middleware/auth";
 
 const analytics = new Hono();
 
-// GET /api/analytics
-analytics.get("/", async (c) => {
+// POST /api/analytics/track (Public zero-script edge visit counter)
+analytics.post("/track", async (c) => {
+  try {
+    const today = new Date().toISOString().split("T")[0];
+    await prisma.dailyAnalytics.upsert({
+      where: { date: today },
+      update: {
+        visitorSessions: { increment: 1 },
+      },
+      create: {
+        date: today,
+        visitorSessions: 1,
+        ordersCount: 0,
+        revenue: 0,
+      },
+    });
+
+    return c.json({ success: true });
+  } catch {
+    return c.json({ success: false }, 200); // Fail silently for analytics
+  }
+});
+
+// GET /api/analytics (Admin Protected)
+analytics.get("/", adminAuthMiddleware, async (c) => {
   try {
     const totalOrdersCount = await prisma.order.count();
     const orders = await prisma.order.findMany({
@@ -54,29 +78,6 @@ analytics.get("/", async (c) => {
     });
   } catch (err: any) {
     return c.json({ error: err.message }, 500);
-  }
-});
-
-// POST /api/analytics/track (Zero-script edge visit counter)
-analytics.post("/track", async (c) => {
-  try {
-    const today = new Date().toISOString().split("T")[0];
-    await prisma.dailyAnalytics.upsert({
-      where: { date: today },
-      update: {
-        visitorSessions: { increment: 1 },
-      },
-      create: {
-        date: today,
-        visitorSessions: 1,
-        ordersCount: 0,
-        revenue: 0,
-      },
-    });
-
-    return c.json({ success: true });
-  } catch {
-    return c.json({ success: false }, 200); // Fail silently for analytics
   }
 });
 

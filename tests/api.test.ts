@@ -1,7 +1,19 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import app from "../src/server";
+import { signAdminToken } from "../src/lib/auth";
 
 describe("Hono Backend API Endpoints", () => {
+  let adminToken: string;
+
+  beforeAll(async () => {
+    adminToken = await signAdminToken({
+      id: "admin-1",
+      email: "admin@cwbfashion.com",
+      name: "CWB Director",
+      role: "ADMIN",
+    });
+  });
+
   it("GET /api/products returns product array with variants", async () => {
     const res = await app.request("/api/products");
     expect(res.status).toBe(200);
@@ -103,8 +115,10 @@ describe("Hono Backend API Endpoints", () => {
     expect(data.user.email).toBe("admin@cwbfashion.com");
   });
 
-  it("GET /api/analytics returns live store KPIs", async () => {
-    const res = await app.request("/api/analytics");
+  it("GET /api/analytics returns live store KPIs when authenticated", async () => {
+    const res = await app.request("/api/analytics", {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
     expect(res.status).toBe(200);
     const analytics = await res.json();
     expect(analytics.totalRevenue).toBeDefined();

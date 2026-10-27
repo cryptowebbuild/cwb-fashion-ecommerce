@@ -5,8 +5,6 @@ import Image from "next/image";
 import {
   ShoppingBag,
   Truck,
-  ShieldCheck,
-  RotateCcw,
   Check,
   AlertTriangle,
   ChevronDown,
@@ -33,13 +31,30 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
   const [quantity, setQuantity] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
 
-  // Find matching variant
+  // Exact matching variant with NO fallback to variant[0] to prevent bypassing out-of-stock guards
   const currentVariant: ProductVariant | undefined = product.variants.find(
     (v) => v.size === selectedSize && v.color === selectedColor
-  ) || product.variants[0];
+  );
 
   const currentStock = currentVariant ? currentVariant.stock : 0;
-  const isOutOfStock = currentStock === 0;
+  const isOutOfStock = !currentVariant || currentStock === 0;
+
+  // Auto-switch size if current size is not in stock for the newly selected color
+  const handleColorChange = (newColor: string) => {
+    setSelectedColor(newColor);
+    const variantInNewColor = product.variants.find(
+      (v) => v.color === newColor && v.size === selectedSize && v.stock > 0
+    );
+    if (!variantInNewColor) {
+      // Find first available in-stock size in this new color
+      const availableVariant = product.variants.find(
+        (v) => v.color === newColor && v.stock > 0
+      );
+      if (availableVariant) {
+        setSelectedSize(availableVariant.size);
+      }
+    }
+  };
 
   // Accordion state
   const [openAccordion, setOpenAccordion] = useState<string | null>("craft");
@@ -161,7 +176,6 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
 
           <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
             {allSizes.map((size) => {
-              // check if this size is available in current or any color
               const sizeVariant = product.variants.find(
                 (v) => v.size === size && v.color === selectedColor
               );
@@ -170,12 +184,13 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
               return (
                 <button
                   key={size}
+                  disabled={isSizeOOS}
                   onClick={() => setSelectedSize(size)}
                   className={`py-2.5 rounded-xl text-xs font-bold uppercase transition-all relative ${
                     selectedSize === size
                       ? "bg-cwb-accent text-black shadow-lg shadow-cwb-accent/20"
                       : isSizeOOS
-                      ? "bg-white/5 text-white/25 border border-white/5 hover:border-white/10 line-through cursor-not-allowed"
+                      ? "bg-white/5 text-white/20 border border-white/5 line-through cursor-not-allowed opacity-50"
                       : "bg-white/5 text-white/80 border border-white/10 hover:border-cwb-accent/40"
                   }`}
                 >
@@ -196,7 +211,7 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
             {allColors.map((color) => (
               <button
                 key={color}
-                onClick={() => setSelectedColor(color)}
+                onClick={() => handleColorChange(color)}
                 className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wider transition-all ${
                   selectedColor === color
                     ? "bg-white text-black font-bold shadow-md"
@@ -224,7 +239,7 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
           ) : (
             <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-xl">
               <Check className="w-4 h-4 shrink-0" />
-              <span>In Stock — Ready for complimentary dispatch.</span>
+              <span>In Stock ({currentStock} units) — Ready for complimentary dispatch.</span>
             </div>
           )}
         </div>
@@ -254,7 +269,7 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
           <button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
-            className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-cwb-accent to-cwb-accentLight text-black font-black text-xs tracking-widest uppercase flex items-center justify-center gap-2 shadow-xl shadow-cwb-accent/20 hover:scale-[1.01] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-cwb-accent to-cwb-accentLight text-black font-black text-xs tracking-widest uppercase flex items-center justify-center gap-2 shadow-xl shadow-cwb-accent/20 hover:scale-[1.01] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           >
             {isAdded ? (
               <>
