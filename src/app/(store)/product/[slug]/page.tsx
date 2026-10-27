@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { ProductDetailsClient } from "./product-details-client";
 import { ProductCard } from "@/components/store/product-card";
 import { Product } from "@/types";
+import { JsonLdScript, generateProductJsonLd } from "@/components/seo/json-ld";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -44,11 +45,24 @@ export default async function ProductDetailPage({ params }: PageProps) {
     notFound();
   }
 
+  const images: string[] = JSON.parse(productRaw.images || "[]");
+
   const product: Product = {
     ...productRaw,
-    images: JSON.parse(productRaw.images || "[]"),
+    images,
     createdAt: productRaw.createdAt.toISOString(),
   };
+
+  const productJsonLd = generateProductJsonLd({
+    name: product.title,
+    description: product.description,
+    price: product.price,
+    currency: "USD",
+    slug: product.slug,
+    images,
+    inStock: product.variants.some((v) => v.stock > 0),
+    category: product.category?.name,
+  });
 
   // Fetch 4 related products
   const relatedRaw = await prisma.product.findMany({
@@ -72,6 +86,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
   return (
     <div className="py-12">
+      <JsonLdScript data={productJsonLd} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Product Viewer */}
         <ProductDetailsClient product={product} />
