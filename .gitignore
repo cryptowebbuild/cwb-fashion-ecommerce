@@ -11,8 +11,8 @@ yarn-error.log*
 .pnpm-debug.log*
 .env*.local
 .env
-dev.db
-dev.db-journal
+/dev.db
+/dev.db-journal
 .superpowers/
 .vercel
 
