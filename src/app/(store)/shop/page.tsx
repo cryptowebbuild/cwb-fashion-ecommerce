@@ -34,22 +34,25 @@ export default async function ShopPage() {
   }));
 
   return (
-    <div className="min-h-screen py-12">
+    <div className="min-h-screen py-16 bg-cwb-void">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-10 text-center sm:text-left">
-          <span className="text-xs font-bold uppercase tracking-widest text-cwb-accent mb-2 block">
-            Menswear Catalog
-          </span>
-          <h1 className="text-3xl sm:text-5xl font-black text-white uppercase tracking-tight">
-            The Complete Collection
-          </h1>
-          <p className="text-xs sm:text-sm text-white/50 mt-2 max-w-xl">
-            Explore handcrafted blazers, heavyweight terry streetwear, full-grain leather, and Goodyear-welted footwear. 100% Cash on Delivery on all orders.
+        {/* Editorial Catalog Header */}
+        <div className="mb-14 pb-8 border-b border-white/[0.08] text-center sm:text-left flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-2 text-cwb-accent font-mono text-[10px] tracking-[0.3em] uppercase mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-cwb-accent" />
+              <span>Autumn / Winter 2026 Archive</span>
+            </div>
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-light text-white uppercase tracking-tight font-serif">
+              The Complete <span className="italic font-normal text-cwb-accent">Collection</span>
+            </h1>
+          </div>
+          <p className="text-xs sm:text-sm text-white/50 max-w-md font-light leading-relaxed">
+            From structured Italian double-breasted blazers to Japanese 500GSM loopback cottons. Every garment is available with 100% Cash on Delivery and doorstep inspection.
           </p>
         </div>
 
-        {/* Interactive Filter & Product Display */}
+        {/* Client Interactive Filter & Grid */}
         <ShopClient initialProducts={products} categories={categories} />
       </div>
     </div>
