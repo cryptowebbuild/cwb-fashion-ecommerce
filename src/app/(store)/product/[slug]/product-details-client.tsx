@@ -2,12 +2,16 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   ShoppingBag,
   Truck,
   Check,
   AlertTriangle,
   ChevronDown,
+  ShieldCheck,
+  RotateCcw,
+  Sparkles,
 } from "lucide-react";
 import { Product, ProductVariant } from "@/types";
 import { useCart } from "@/context/cart-context";
@@ -17,7 +21,7 @@ interface ProductDetailsClientProps {
 }
 
 export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
-  const { addItem } = useCart();
+  const { addItem, toggleCart } = useCart();
   const images = product.images.length > 0 ? product.images : ["/placeholder.jpg"];
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -46,7 +50,6 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
       (v) => v.color === newColor && v.size === selectedSize && v.stock > 0
     );
     if (!variantInNewColor) {
-      // Find first available in-stock size in this new color
       const availableVariant = product.variants.find(
         (v) => v.color === newColor && v.stock > 0
       );
@@ -82,11 +85,16 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
     setTimeout(() => setIsAdded(false), 2000);
   };
 
+  const handleBuyNowCOD = () => {
+    handleAddToCart();
+    toggleCart();
+  };
+
   const hasDiscount = product.compareAtPrice && product.compareAtPrice > product.price;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-      {/* Left: Gallery (7 Cols) */}
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+      {/* Left: Editorial Gallery (7 Cols) */}
       <div className="lg:col-span-7 flex flex-col-reverse sm:flex-row gap-4">
         {/* Thumbnails */}
         {images.length > 1 && (
@@ -95,10 +103,10 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
               <button
                 key={idx}
                 onClick={() => setActiveImageIndex(idx)}
-                className={`relative w-16 h-20 sm:w-20 sm:h-24 rounded-xl overflow-hidden border-2 transition-all ${
+                className={`relative w-16 h-20 sm:w-20 sm:h-28 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
                   activeImageIndex === idx
-                    ? "border-cwb-accent scale-105 shadow-md shadow-cwb-accent/20"
-                    : "border-white/10 opacity-60 hover:opacity-100"
+                    ? "border-cwb-accent scale-105 shadow-lg shadow-cwb-accent/20"
+                    : "border-white/10 opacity-50 hover:opacity-100"
                 }`}
               >
                 <Image
@@ -113,8 +121,8 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
           </div>
         )}
 
-        {/* Main High-Res Image (Aspect 4:5 for zero CLS) */}
-        <div className="relative aspect-[4/5] flex-1 rounded-3xl overflow-hidden bg-zinc-900 border border-white/10 shadow-2xl">
+        {/* Main High-Res Image (3:4 ratio for editorial elegance) */}
+        <div className="relative aspect-[3/4] flex-1 rounded-2xl overflow-hidden bg-[#0c0d12] border border-white/[0.08] shadow-2xl luxury-card group">
           <Image
             src={images[activeImageIndex]}
             alt={product.title}
@@ -125,52 +133,56 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
           />
 
           {hasDiscount && (
-            <div className="absolute top-4 left-4 px-3 py-1.5 rounded-lg bg-cwb-accent text-black font-extrabold text-xs tracking-wider uppercase shadow-lg">
-              Special Drop Price
+            <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-cwb-accent text-black font-mono font-bold text-[10px] tracking-wider uppercase shadow-xl">
+              Archival Privilege Price
             </div>
           )}
+
+          <div className="absolute bottom-4 left-4 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white/80 font-mono text-[9px] tracking-widest uppercase">
+            Look 0{activeImageIndex + 1} • High-Resolution View
+          </div>
         </div>
       </div>
 
-      {/* Right: Product Buy Box & Specs (5 Cols) */}
-      <div className="lg:col-span-5 space-y-6">
+      {/* Right: Product Dossier & Purchase Concierge (5 Cols) */}
+      <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-28">
         <div>
           {product.category && (
-            <span className="text-xs font-bold uppercase tracking-widest text-cwb-accent mb-2 block">
-              {product.category.name}
+            <span className="text-[10px] font-mono uppercase tracking-[0.3em] text-cwb-accent mb-2 block">
+              {product.category.name} • Drop 01
             </span>
           )}
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-serif text-white tracking-tight leading-tight">
             {product.title}
           </h1>
 
-          <div className="mt-4 flex items-baseline gap-3">
-            <span className="text-3xl font-extrabold text-cwb-accentLight">
+          <div className="mt-4 flex items-baseline gap-4 border-b border-white/[0.06] pb-6">
+            <span className="text-3xl font-mono font-bold text-white">
               ${product.price}
             </span>
             {hasDiscount && (
-              <span className="text-lg text-white/40 line-through">
+              <span className="text-sm font-mono text-white/40 line-through">
                 ${product.compareAtPrice}
               </span>
             )}
-            <span className="text-xs px-2.5 py-1 rounded bg-white/5 border border-white/10 text-emerald-400 font-semibold uppercase">
-              Free Express Shipping
+            <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 uppercase tracking-widest">
+              100% Cash On Delivery
             </span>
           </div>
         </div>
 
-        <p className="text-xs sm:text-sm text-white/70 leading-relaxed border-t border-white/10 pt-4">
+        <p className="text-xs sm:text-sm text-white/60 leading-relaxed font-light">
           {product.description}
         </p>
 
         {/* Size Selector */}
         <div className="space-y-3 pt-2">
-          <div className="flex justify-between text-xs">
-            <span className="font-semibold text-white uppercase tracking-wider">
-              Select Size: <strong className="text-cwb-accent">{selectedSize}</strong>
+          <div className="flex justify-between items-center text-xs">
+            <span className="font-mono text-[11px] text-white/80 uppercase tracking-widest">
+              Selected Size: <strong className="text-cwb-accent">{selectedSize}</strong>
             </span>
-            <span className="text-white/40 cursor-pointer hover:text-white">
-              Size Guide
+            <span className="text-[10px] font-mono text-white/40 uppercase tracking-wider">
+              True to Tailored Cut
             </span>
           </div>
 
@@ -186,12 +198,12 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
                   key={size}
                   disabled={isSizeOOS}
                   onClick={() => setSelectedSize(size)}
-                  className={`py-2.5 rounded-xl text-xs font-bold uppercase transition-all relative ${
+                  className={`py-2.5 rounded-lg text-xs font-mono font-bold uppercase transition-all duration-200 ${
                     selectedSize === size
                       ? "bg-cwb-accent text-black shadow-lg shadow-cwb-accent/20"
                       : isSizeOOS
-                      ? "bg-white/5 text-white/20 border border-white/5 line-through cursor-not-allowed opacity-50"
-                      : "bg-white/5 text-white/80 border border-white/10 hover:border-cwb-accent/40"
+                      ? "bg-white/[0.02] text-white/20 border border-white/[0.04] line-through cursor-not-allowed opacity-40"
+                      : "bg-white/[0.04] text-white/70 border border-white/[0.08] hover:border-cwb-accent/40 hover:text-white"
                   }`}
                 >
                   {size}
@@ -203,8 +215,8 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
 
         {/* Color Selector */}
         <div className="space-y-3">
-          <span className="text-xs font-semibold text-white uppercase tracking-wider block">
-            Select Color: <strong className="text-cwb-accent">{selectedColor}</strong>
+          <span className="font-mono text-[11px] text-white/80 uppercase tracking-widest block">
+            Finish & Colorway: <strong className="text-cwb-accent">{selectedColor}</strong>
           </span>
 
           <div className="flex flex-wrap gap-2">
@@ -212,10 +224,10 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
               <button
                 key={color}
                 onClick={() => handleColorChange(color)}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold tracking-wider transition-all ${
+                className={`px-3.5 py-1.5 rounded-lg text-xs font-mono tracking-wider transition-all ${
                   selectedColor === color
                     ? "bg-white text-black font-bold shadow-md"
-                    : "bg-white/5 text-white/70 border border-white/10 hover:border-white/20"
+                    : "bg-white/[0.04] text-white/70 border border-white/[0.08] hover:border-white/20"
                 }`}
               >
                 {color}
@@ -224,122 +236,100 @@ export function ProductDetailsClient({ product }: ProductDetailsClientProps) {
           </div>
         </div>
 
-        {/* Real-Time Stock Status Badge */}
+        {/* Real-Time Stock Status */}
         <div className="pt-2">
           {isOutOfStock ? (
-            <div className="flex items-center gap-2 text-rose-400 text-xs font-semibold bg-rose-500/10 border border-rose-500/20 px-3 py-2 rounded-xl">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span>Currently Sold Out in this size/color combination.</span>
+            <div className="flex items-center gap-2 text-rose-400 text-xs font-mono bg-rose-500/10 border border-rose-500/20 px-3 py-2 rounded-lg">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              <span>Archived out of stock in this combination.</span>
             </div>
-          ) : currentStock <= 5 ? (
-            <div className="flex items-center gap-2 text-amber-400 text-xs font-semibold bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-xl">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span>High demand: Only {currentStock} units remaining in vault.</span>
+          ) : currentStock <= 4 ? (
+            <div className="flex items-center gap-2 text-amber-300 text-xs font-mono bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-lg">
+              <Sparkles className="w-3.5 h-3.5 shrink-0 text-cwb-accent" />
+              <span>High demand: Only {currentStock} pieces remaining in archival reserve.</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-xl">
-              <Check className="w-4 h-4 shrink-0" />
-              <span>In Stock ({currentStock} units) — Ready for complimentary dispatch.</span>
+            <div className="flex items-center gap-2 text-emerald-300 text-xs font-mono bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg">
+              <Check className="w-3.5 h-3.5 shrink-0" />
+              <span>In Atelier Stock ({currentStock} pieces) — Complimentary nationwide dispatch.</span>
             </div>
           )}
         </div>
 
-        {/* Quantity and Add to Bag */}
-        <div className="flex gap-4 pt-2">
-          <div className="flex items-center border border-white/10 rounded-2xl bg-white/5 px-2">
-            <button
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              disabled={quantity <= 1 || isOutOfStock}
-              className="p-2 text-white/70 hover:text-white disabled:opacity-20"
-              aria-label="Decrease quantity"
-            >
-              -
-            </button>
-            <span className="text-sm font-bold px-3 text-white">{quantity}</span>
-            <button
-              onClick={() => setQuantity(Math.min(currentStock, quantity + 1))}
-              disabled={quantity >= currentStock || isOutOfStock}
-              className="p-2 text-white/70 hover:text-white disabled:opacity-20"
-              aria-label="Increase quantity"
-            >
-              +
-            </button>
-          </div>
-
+        {/* Primary Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 pt-3">
           <button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
-            className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-cwb-accent to-cwb-accentLight text-black font-black text-xs tracking-widest uppercase flex items-center justify-center gap-2 shadow-xl shadow-cwb-accent/20 hover:scale-[1.01] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            className="flex-1 py-3.5 px-6 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.12] hover:border-cwb-accent text-white font-mono text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-40"
           >
             {isAdded ? (
               <>
-                <Check className="w-4 h-4 text-emerald-950 font-bold" />
-                <span>Added To Shopping Bag</span>
+                <Check className="w-4 h-4 text-emerald-400" />
+                <span>Added to Bag</span>
               </>
-            ) : isOutOfStock ? (
-              <span>Out Of Stock</span>
             ) : (
               <>
-                <ShoppingBag className="w-4 h-4" />
-                <span>Add To Bag • ${(product.price * quantity).toFixed(0)}</span>
+                <ShoppingBag className="w-4 h-4 text-cwb-accent" />
+                <span>Add to Bag</span>
               </>
             )}
           </button>
+
+          <button
+            onClick={handleBuyNowCOD}
+            disabled={isOutOfStock}
+            className="flex-1 py-3.5 px-6 rounded-xl bg-white hover:bg-cwb-accentLight text-black font-mono text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 shadow-2xl transition-all duration-300 disabled:opacity-40"
+          >
+            <span>Order via Cash on Delivery</span>
+          </button>
         </div>
 
-        {/* COD Reassurance Strip */}
-        <div className="p-4 rounded-2xl bg-white/5 border border-white/5 space-y-2 text-xs text-white/70">
-          <div className="flex items-center gap-2 text-white font-semibold">
-            <Truck className="w-4 h-4 text-cwb-accent" />
-            <span>100% Cash on Delivery (COD)</span>
-          </div>
-          <p className="text-[11px] text-white/50 pl-6">
-            Pay upon receipt at your delivery address. No advance deposit or credit card required.
-          </p>
+        {/* Doorstep Trust Note */}
+        <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center gap-3 text-xs text-white/50">
+          <Truck className="w-4 h-4 text-cwb-accent shrink-0" />
+          <span>Pay in cash upon physical delivery. Inspect stitching & fit before payment.</span>
         </div>
 
-        {/* Accordions */}
-        <div className="border-t border-white/10 pt-4 space-y-3">
-          {/* Craftsmanship */}
-          <div className="border border-white/5 rounded-2xl overflow-hidden bg-cwb-card">
+        {/* Luxury Accordions */}
+        <div className="border-t border-white/[0.06] pt-6 space-y-3">
+          <div className="border border-white/[0.06] rounded-xl overflow-hidden bg-white/[0.02]">
             <button
               onClick={() => toggleAccordion("craft")}
-              className="w-full p-4 flex items-center justify-between text-left text-xs font-bold text-white uppercase tracking-wider"
+              className="w-full px-4 py-3.5 flex items-center justify-between text-left font-serif text-sm text-white hover:text-cwb-accent transition-colors"
             >
-              <span>Materials & Craftsmanship</span>
+              <span>Fabric & Sartorial Construction</span>
               <ChevronDown
-                className={`w-4 h-4 transition-transform ${
+                className={`w-4 h-4 transition-transform duration-200 ${
                   openAccordion === "craft" ? "rotate-180 text-cwb-accent" : "text-white/40"
                 }`}
               />
             </button>
             {openAccordion === "craft" && (
-              <div className="p-4 pt-0 text-xs text-white/60 leading-relaxed border-t border-white/5 space-y-2">
-                <p>• Hand-tailored using traditional full-canvas or half-canvas construction.</p>
-                <p>• Sourced directly from premier Biella wool mills and Okayama denim workshops.</p>
-                <p>• Finished with genuine horn buttons and Japanese excella dual zippers.</p>
+              <div className="px-4 pb-4 text-xs text-white/60 leading-relaxed font-light border-t border-white/[0.04] pt-3">
+                Woven from premium natural fibers sourced from Italian and Japanese textile authorities. Engineered with canvas structuring, hand-finished cuffs, and corrosion-resistant hardware.
               </div>
             )}
           </div>
 
-          {/* Shipping & COD */}
-          <div className="border border-white/5 rounded-2xl overflow-hidden bg-cwb-card">
+          <div className="border border-white/[0.06] rounded-xl overflow-hidden bg-white/[0.02]">
             <button
-              onClick={() => toggleAccordion("shipping")}
-              className="w-full p-4 flex items-center justify-between text-left text-xs font-bold text-white uppercase tracking-wider"
+              onClick={() => toggleAccordion("cod")}
+              className="w-full px-4 py-3.5 flex items-center justify-between text-left font-serif text-sm text-white hover:text-cwb-accent transition-colors"
             >
-              <span>Doorstep Delivery & Exchange</span>
+              <span>Cash on Delivery & Doorstep Protocol</span>
               <ChevronDown
-                className={`w-4 h-4 transition-transform ${
-                  openAccordion === "shipping" ? "rotate-180 text-cwb-accent" : "text-white/40"
+                className={`w-4 h-4 transition-transform duration-200 ${
+                  openAccordion === "cod" ? "rotate-180 text-cwb-accent" : "text-white/40"
                 }`}
               />
             </button>
-            {openAccordion === "shipping" && (
-              <div className="p-4 pt-0 text-xs text-white/60 leading-relaxed border-t border-white/5 space-y-2">
-                <p>• Complimentary express courier dispatch within 24 hours.</p>
-                <p>• Pay comfortably in cash when you receive and inspect your items.</p>
-                <p>• 7-day seamless doorstep size exchange.</p>
+            {openAccordion === "cod" && (
+              <div className="px-4 pb-4 text-xs text-white/60 leading-relaxed font-light border-t border-white/[0.04] pt-3">
+                1. Our concierge calls to confirm delivery window.<br />
+                2. Rider arrives with your archival garment box.<br />
+                3. Inspect garment quality, size, and finish.<br />
+                4. Hand over exact cash payment. 7-day doorstep size exchange guaranteed.
               </div>
             )}
           </div>
