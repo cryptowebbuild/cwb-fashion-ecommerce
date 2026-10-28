@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --background: #08090c;
+  --background: #050507;
   --foreground: #f4f4f6;
   --accent: #d4af37;
   --accent-light: #f3e5ab;
-  --surface: #11131a;
-  --card: #151821;
+  --surface: #101218;
+  --card: #141720;
   --border: rgba(255, 255, 255, 0.08);
 }
 
@@ -17,53 +17,90 @@
     @apply border-white/10;
   }
   body {
-    @apply bg-background text-foreground antialiased selection:bg-cwb-accent selection:text-black;
+    @apply bg-cwb-void text-foreground antialiased selection:bg-cwb-accent selection:text-black;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
   }
 }
 
-/* Glassmorphism & High-Tech Styling */
+/* Luxury Editorial Typography & Accents */
+.font-editorial {
+  font-family: var(--font-serif), "Cormorant Garamond", Georgia, serif;
+  letter-spacing: -0.01em;
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #ffffff 0%, #f3e5ab 50%, #d4af37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.silver-gradient-text {
+  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 60%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Glassmorphism & Luxury Surfaces */
 .glass-panel {
-  background: rgba(17, 19, 26, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(16, 18, 24, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-nav {
-  background: rgba(8, 9, 12, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(5, 5, 7, 0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-.glow-card {
+.luxury-card {
   position: relative;
-  background: linear-gradient(180deg, rgba(21, 24, 33, 0.8) 0%, rgba(14, 16, 22, 0.95) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: linear-gradient(180deg, rgba(20, 23, 32, 0.6) 0%, rgba(12, 14, 18, 0.95) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.glow-card:hover {
-  border-color: rgba(212, 175, 55, 0.4);
-  box-shadow: 0 0 25px -5px rgba(212, 175, 55, 0.15);
+.luxury-card:hover {
+  border-color: rgba(212, 175, 55, 0.35);
+  box-shadow: 0 12px 35px -10px rgba(0, 0, 0, 0.8), 0 0 20px -5px rgba(212, 175, 55, 0.12);
 }
 
-/* Custom Minimal Scrollbar */
+/* Minimalist Editorial Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #08090c;
+  background: #050507;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #252a38;
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3b4257;
+  background: rgba(212, 175, 55, 0.4);
+}
+
+/* Luxury Marquee Smooth Animation */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
 }
